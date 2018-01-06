@@ -212,15 +212,15 @@ class ThreadedExecutor(object):
     def __init__(self):
         self._thread = threading.Thread(target=self._runner)
     
-    def submit(self, task):
+    def submit(self, task, *args, **kwargs):
         """"""
         f = Future()
-        t = threading.Thread(target=self._runner, args=(f,task,))
+        t = threading.Thread(target=self._runner, args=(f, task, args, kwargs,))
         t.start()
         return f
         
-    def _runner(self, fut, task):
-        v = task()
+    def _runner(self, fut, task, args, kwargs):
+        v = task(*args, **kwargs)
         fut.set_result(v)
         pass
 
