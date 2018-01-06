@@ -67,7 +67,12 @@ class Future(object):
         Add the callback to be executed when the future state becomes 
         cancelled/finished
         """
-        self._done_callbacks.append(cb)
+        with self._condition:
+            if self._state not in [CANCELLED, FINISHED]:
+                self._done_callbacks.append(cb)
+                return
+        #Call immediately if result/exception already set
+        cb(self)
     
     
     def result(self, timeout=None):
@@ -214,15 +219,15 @@ class ThreadedExecutor(object):
         t.start()
         return f
         
-    def _runner(self, future, task):
+    def _runner(self, fut, task):
         v = task()
-        f.set_result(v)
+        fut.set_result(v)
         pass
 
 
 # In[17]:
 
-
-f = ThreadedExecutor().submit(bg_task)
-f.result()
+if __name__ == "__main__":
+    f = ThreadedExecutor().submit(bg_task)
+    f.result()
 
