@@ -6,6 +6,10 @@ from future import ThreadedExecutor
 import task
 from task import Task
 
+#New task which is a future
+import task2
+from task2 import Task as Task2
+
 """
 What we want is not to keep polling futures done method or get blocked while calling the result method. Neither do we want the callback based approach in our code. We want to make the code look as much synchronous as possible.
 Something like below....
@@ -75,5 +79,11 @@ if __name__ == "__main__":
     Fix the above problem using "yield from".
     "yield from" works on an iterable object only.
     """
-    Task(do_after_fixed(3, perform_async_task())).step()
+    #Task(do_after_fixed(3, perform_async_task())).step()
+
+    print ("Performing async task and waiting for result")
+    t = Task2(do_after_fixed(3, perform_async_task()))
+    t.step()
+    res = t.result()
+    print ("Result of task is: {}".format(res))
 
