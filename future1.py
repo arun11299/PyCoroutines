@@ -192,6 +192,15 @@ class Future(object):
             except Exception as e:
                 print ("ERROR: {}".format(str(e)))
 
+    def __iter__(self):
+        """
+        This future is an iterable now.
+        """
+        if not self.done():
+            yield self
+
+        return self.result()
+
 
 # Lets write some tests to check our future in action
 
