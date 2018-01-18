@@ -65,16 +65,15 @@ def print_inorder_reg(node):
         return
 
     print_inorder_reg(node.left)
-    print ("Data: {}".format(node.data))
+    #print ("Data: {}".format(node.data))
     print_inorder_reg(node.right)
 
 def print_inorder_gen(node):
     if node is None:
         return
     for n in print_inorder_gen(node.left):
-        print (">>1 {}".format(n))
         yield n
-    print ("Data: {}".format(node.data))
+
     yield node.data
     for n in print_inorder_gen(node.right):
         yield n
@@ -121,13 +120,18 @@ if __name__ == "__main__":
     print_inorder(t.root_node)
     """
     l = []
-    for i in range(1, 10):
+    for i in range(0, 99999):
         l.append(i)
     
     t = build_tree(l)
-    print ("Nodes: {}".format(t.nodes))
+
+    print_inorder_reg(t.root_node)
+
+    """
+    #Generator based
     for i in print_inorder_gen(t.root_node):
         pass
+    """
     
     pass
 
