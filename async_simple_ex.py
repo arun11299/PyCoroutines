@@ -4,6 +4,7 @@ import asyncio
 @asyncio.coroutine
 def coroutine():
     print('in coroutine')
+    yield 5
 
 
 event_loop = asyncio.get_event_loop()

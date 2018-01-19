@@ -35,6 +35,13 @@ def task(func):
     return _wrap()
 
 
+class StopLoopException(Exception):
+    """
+    If this exception is raised while the loop
+    is processing the tasks, then it must close down.
+    """
+    pass
+
 
 class TaskLoop(object):
     """
