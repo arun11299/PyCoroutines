@@ -9,30 +9,35 @@ class NotGenerator(Exception):
     """
     pass
 
-def task(func):
+def async_proc(supposed_future_coro, loop):
     """
-    Wraps a function inside a Task object which
-    is also a Future.
-    The returned task can be passed on to the 
-    task execution loop for completion.
+    Loop works best with futures or with Tasks
+    which wraps a generator object.
+    So try to introspect the type of
+    `supposed_future` argument and do the best 
+    possible conversion of it.
 
-    Users can add done callbacks to this task which would be called
-    once the passed in function is completely executed.
+    loop object is for creating the task so that it
+    can add a callback.
     """
-    def _wrap(*args, **kwargs):
+    if isinstance(supposed_future_coro, Future):
         """
+        It is a future object. Nothing to do.
         """
-        gen = func(*args, **kwargs)
-
-        if inspect.isgenerator(gen):
-            raise NotGenerator("{} does not return a generator".format(func.__name__))
-
-        assert (gen is not None)
-
-        t = Task(gen)
+        if loop != supposed_future_coro._loop:
+            raise RuntimeError("loop provided is not equal to the loop of future")
+        return supposed_future_coro
+    elif inspect.isgenerator(supposed_future_coro):
+        #Create a task object
+        t = loop.add_task(supposed_future_coro)
         return t
-    
-    return _wrap()
+    else:
+        raise TypeError("Cannot create an asynchronous execution unit from the provided arg")
+
+    assert (False and "Code Not Reached")
+    return None
+
+
 
 
 class StopLoopException(Exception):
@@ -68,10 +73,12 @@ class TaskLoop(object):
         pass
 
 
-    def add_task(self, coro):
+    def add_task(self, gen_obj):
         """
+        Creates a task object and returns it
         """
-        pass
+        t = Task(self, gen_obj)
+        return t
 
     def call_soon(self, cb, *args):
         """
