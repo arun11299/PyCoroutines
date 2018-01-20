@@ -36,6 +36,8 @@ class Task(Future):
 
         except StopIteration as e:
             self.set_result(snd_val)
+        except Exception as e:
+            self.set_exception(e)
         
     def _fut_done_cb(self, fut):
         try:

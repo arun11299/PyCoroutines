@@ -3,6 +3,7 @@ from collections import deque
 
 from task import Task
 from future import Future
+from handle import Handle
 
 class NotGenerator(Exception):
     """
@@ -52,6 +53,7 @@ class TaskLoop(object):
     """
     """
     def __init__(self):
+        #A deque of handles
         self._ready = deque()
         self._loop_running = False
         pass
@@ -61,17 +63,53 @@ class TaskLoop(object):
         """
         return len(self._ready)
 
+    def run_once(self):
+        """
+        Execute a task from the ready queue
+        """
+        if len(self._ready) == 0:
+            #There are no tasks to be executed
+            return
+
+        hndl = self._ready.pop()
+        #Call the handler which invokes the
+        #wrapped function
+        hndl()
+
     def run_forever(self):
         """
         """
-        pass
+        self._loop_running = True
+
+        while True:
+            try:
+                self.run_once()
+            except StopLoopException:
+                break
+            except Exception as e:
+                print ("Error in run_forever: {}".format(str(e)))
+        return 
 
     def run_until_complete(self, coro_or_future):
         """
+        Run the event loop until the future
+        is ready with result or exception.
         """
-        is_fut = isinstance(coro_or_future, Future)
-        pass
 
+        if self._loop_running:
+            raise RuntimeError("loop already running")
+
+        task_or_fut = async_proc(coro_or_future, self)
+        assert task_or_fut is not None
+
+        is_new_task = not isinstance(task_or_fut, Future)
+        #Add a callback to stop loop once the future is ready
+        task_or_fut.add_done_callback(self._stop_loop)
+
+        try:
+            self.run_forever()
+        except Exception as e:
+            raise e
 
     def add_task(self, gen_obj):
         """
@@ -83,4 +121,12 @@ class TaskLoop(object):
     def call_soon(self, cb, *args):
         """
         """
-        pass
+        hndl = Handle(cb, args)
+        self._ready.append(hndl)
+        return hndl
+
+    def _stop_loop(self):
+        """
+        Raise the stop loop exception
+        """
+        raise StopLoopException("stop the loop")
