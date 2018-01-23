@@ -2,10 +2,10 @@
 class Handle(object):
     """
     """
-    def __init__(self, fn, *args, loop):
+    def __init__(self, fn, loop, args):
         """
         """
-        self._cb = cb
+        self._cb = fn
         self._args = args
         self._loop = loop
         self._cancelled = False
@@ -14,7 +14,7 @@ class Handle(object):
     def __call__(self):
         """
         """
-        self._cb(self._args)
+        self._cb(*self._args)
         self._finished = True
         pass
 

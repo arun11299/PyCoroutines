@@ -10,13 +10,21 @@ class NotGenerator(Exception):
     """
     pass
 
-def async_proc(supposed_future_coro, loop):
+class NotRegularFunction(Exception):
+    """
+    """
+    pass
+
+def transform_future(supposed_future_coro, loop):
     """
     Loop works best with futures or with Tasks
     which wraps a generator object.
     So try to introspect the type of
-    `supposed_future` argument and do the best 
+    `supposed_future_coro` argument and do the best 
     possible conversion of it.
+    1. If its is already a type of Future, then return as it is.
+    2. If it is a generator, then wrap it in Task object and 
+       return the task instance.
 
     loop object is for creating the task so that it
     can add a callback.
@@ -40,7 +48,6 @@ def async_proc(supposed_future_coro, loop):
 
 
 
-
 class StopLoopException(Exception):
     """
     If this exception is raised while the loop
@@ -54,6 +61,7 @@ class TaskLoop(object):
     """
     def __init__(self):
         #A deque of handles
+        #CPython implementation of deque is thread-safe
         self._ready = deque()
         self._loop_running = False
         pass
@@ -85,9 +93,11 @@ class TaskLoop(object):
             try:
                 self.run_once()
             except StopLoopException:
+                self._loop_running = False
                 break
             except Exception as e:
                 print ("Error in run_forever: {}".format(str(e)))
+
         return 
 
     def run_until_complete(self, coro_or_future):
@@ -99,12 +109,13 @@ class TaskLoop(object):
         if self._loop_running:
             raise RuntimeError("loop already running")
 
-        task_or_fut = async_proc(coro_or_future, self)
+        #Transform into a future or task(inherits from Future)
+        task_or_fut = transform_future(coro_or_future, self)
         assert task_or_fut is not None
 
         is_new_task = not isinstance(task_or_fut, Future)
         #Add a callback to stop loop once the future is ready
-        task_or_fut.add_done_callback(self._stop_loop)
+        task_or_fut.add_done_callback(self._stop_loop_fut)
 
         try:
             self.run_forever()
@@ -120,13 +131,30 @@ class TaskLoop(object):
 
     def call_soon(self, cb, *args):
         """
+        Add the callback to the loops ready queue
+        for it to be executed.
         """
-        hndl = Handle(cb, args)
+        if inspect.isgeneratorfunction(cb):
+            raise NotRegularFunction()
+
+        hndl = Handle(cb, self, args)
         self._ready.append(hndl)
         return hndl
+
+    def stop(self):
+        """
+        Stop the loop as soon as possible
+        """
+        self.call_soon(self._stop_loop)
 
     def _stop_loop(self):
         """
         Raise the stop loop exception
         """
+        raise StopLoopException("stop the loop")
+
+    def _stop_loop_fut(self, fut):
+        """
+        """
+        assert fut is not None
         raise StopLoopException("stop the loop")

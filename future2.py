@@ -196,6 +196,7 @@ class Future(object):
                 cb(self)
             except Exception as e:
                 print ("ERROR: {}".format(str(e)))
+                raise e
 
     def __iter__(self):
         """
