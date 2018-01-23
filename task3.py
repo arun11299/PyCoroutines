@@ -56,11 +56,19 @@ class Task(Future):
                 self._loop.call_soon(self.step)
         
     def _fut_done_cb(self, fut):
+        """
+        Called if the yielded future by the coroutine
+        is ready
+        """
         try:
             result = fut.result()
-            self.step(result, None)
+
         except Exception as e:
             self.step(None, e)
+        else:
+            #Call the step again to continue
+            #with the coroutine execution.
+            self.step(result, None)
         pass
 
 

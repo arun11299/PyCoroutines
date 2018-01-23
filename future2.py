@@ -54,6 +54,8 @@ class FutureTimeoutError(Exception):
 
 class Future(object):
     """
+    Provides the interface for Future.
+
     This revision of the Future class integrates with
     the task loop.
     """
