@@ -224,13 +224,35 @@ def bg_task():
 
 # In[16]:
 
-
-class ThreadedExecutor(object):
+class Executor(object):
+    """
+    An interface for Executor.
+    A concrete implementation of this class
+    is expected to override all methods of this class.
+    """
     def __init__(self):
+        pass
+
+    def submit(self, task, *args, **kwargs):
+        """
+        Takes a task to be executed with the arguments
+        it requires.
+        Returns a Future object instance.
+        """
+        raise NotImplementedError()
+
+
+class ThreadedExecutor(Executor):
+    def __init__(self):
+        super(self).__init__()
         self._thread = threading.Thread(target=self._runner)
     
     def submit(self, task, *args, **kwargs):
-        """"""
+        """
+        Create a new thread and run the _runner function.
+        Execute the task in the _runner and return the
+        future.
+        """
         f = Future()
         t = threading.Thread(target=self._runner, args=(f, task, args, kwargs,))
         t.start()
