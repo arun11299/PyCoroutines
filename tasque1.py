@@ -7,11 +7,15 @@ from handle import Handle
 
 class NotGenerator(Exception):
     """
+    Thrown when expected function is not a
+    generator object.
     """
     pass
 
 class NotRegularFunction(Exception):
     """
+    Thrown when the expected function is not
+    a regular function.
     """
     pass
 
@@ -86,6 +90,10 @@ class TaskLoop(object):
 
     def run_forever(self):
         """
+        This is the main loop which runs forever.
+
+        TODO: Currently just runs infinitely. Should run
+        only till some work is there.
         """
         self._loop_running = True
 
